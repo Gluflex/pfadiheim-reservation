@@ -63,8 +63,12 @@ async function main() {
   for (let i = 0; i < GROUPS.length; i++) {
     console.error(`  ${GROUPS[i].padEnd(12)} -> ${plaintexts[i]}`);
   }
-  console.error("\n=== GROUP_PASSWORDS_JSON env var (copy whole line below) ===\n");
-  console.log(JSON.stringify(hashes));
+  const json = JSON.stringify(hashes);
+  const b64 = Buffer.from(json, "utf8").toString("base64");
+  console.error("\n=== GROUP_PASSWORDS_JSON env var (paste this base64 value into Vercel) ===\n");
+  console.log(b64);
+  console.error("\n   (Vercel interprets '$' in env values as variable refs and mangles bcrypt hashes,");
+  console.error("    so we use base64 to be safe. The app decodes it automatically.)");
   console.error("\n=== JWT_SECRET suggestion (copy this too) ===");
   console.error(`  ${randomSecret(48)}`);
   console.error("");

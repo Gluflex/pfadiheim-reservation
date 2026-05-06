@@ -17,11 +17,21 @@ function getJwtSecret(): Uint8Array {
 function getGroupHashes(): Record<string, string> {
   const raw = process.env.GROUP_PASSWORDS_JSON;
   if (!raw) throw new Error("GROUP_PASSWORDS_JSON is not set");
+  // Try base64 first (recommended — bcrypt hashes contain '$' which Vercel
+  // interprets as a variable reference and mangles). Fall back to raw JSON.
+  let candidate = raw.trim();
+  if (!candidate.startsWith("{")) {
+    try {
+      candidate = Buffer.from(candidate, "base64").toString("utf8");
+    } catch {
+      // leave as-is, JSON.parse will throw below
+    }
+  }
   let parsed: unknown;
   try {
-    parsed = JSON.parse(raw);
+    parsed = JSON.parse(candidate);
   } catch {
-    throw new Error("GROUP_PASSWORDS_JSON is not valid JSON");
+    throw new Error("GROUP_PASSWORDS_JSON is not valid JSON (paste base64 of the JSON to avoid Vercel '$' expansion)");
   }
   if (!parsed || typeof parsed !== "object") {
     throw new Error("GROUP_PASSWORDS_JSON must be an object");
