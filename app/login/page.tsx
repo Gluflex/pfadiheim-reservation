@@ -4,10 +4,10 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   GROUPS,
-  GROUP_COLORS,
   STUFEN,
   STUFE_TINT,
   STUFE_BLOCK,
+  STUFE_RING,
   ROOMS,
   type Group,
   type Room,
@@ -38,6 +38,15 @@ function LoginInner() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [tappedGroup, setTappedGroup] = useState<Group | null>(null);
+
+  function pickGroup(g: Group) {
+    setGroup(g);
+    setTappedGroup(null);
+    // Force the animation class to re-mount on the next tick.
+    requestAnimationFrame(() => setTappedGroup(g));
+    window.setTimeout(() => setTappedGroup(null), 320);
+  }
 
   const [nextSat, setNextSat] = useState<{ iso: string; label: string } | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -119,9 +128,9 @@ function LoginInner() {
       </div>
 
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-5xl grid lg:grid-cols-[minmax(0,420px)_1fr] gap-8 lg:gap-12 items-start">
+        <div className="w-full max-w-5xl grid lg:grid-cols-[1fr_minmax(0,420px)] gap-8 lg:gap-12 items-start">
           {/* Login card */}
-          <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-2xl shadow-2xl p-7 sm:p-8 border border-white/40 dark:border-zinc-800">
+          <div className="order-1 lg:order-2 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-2xl shadow-2xl p-7 sm:p-8 border border-white/40 dark:border-zinc-800">
             <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 leading-none">
               Pfadiheim
             </h1>
@@ -136,19 +145,25 @@ function LoginInner() {
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {GROUPS.map((g) => {
-                    const c = GROUP_COLORS[g];
                     const tint = STUFE_TINT[STUFEN[g]];
+                    const ring = STUFE_RING[STUFEN[g]];
                     const active = group === g;
+                    const tapped = tappedGroup === g;
                     return (
                       <button
                         type="button"
                         key={g}
-                        onClick={() => setGroup(g)}
-                        className={`text-xs font-medium px-2 py-2 rounded-lg transition-all ${
-                          active
-                            ? `${c.bg} ${c.text} ring-2 ${c.ring} shadow-md`
-                            : `${tint.bg} ${tint.bgHover} text-zinc-700 dark:text-zinc-200`
-                        }`}
+                        onClick={() => pickGroup(g)}
+                        className={`text-xs px-2 py-2 rounded-lg
+                          ${tint.bg} ${tint.bgHover}
+                          transition-[box-shadow,color,font-weight] duration-200 ease-out
+                          active:scale-95 will-change-transform
+                          ${active
+                            ? `ring-2 ${ring} font-bold text-zinc-900 dark:text-zinc-50 shadow-sm`
+                            : "font-medium text-zinc-700 dark:text-zinc-200"
+                          }
+                          ${tapped ? "animate-tap" : ""}
+                        `}
                       >
                         {g}
                       </button>
@@ -192,8 +207,8 @@ function LoginInner() {
           </div>
 
           {/* Upcoming Saturday — no card chrome, white-on-photo */}
-          <div className="text-white text-shadow-soft">
-            <p className="font-script text-xl sm:text-2xl text-emerald-300 mb-1">
+          <div className="order-2 lg:order-1 text-white text-shadow-soft">
+            <p className="text-xs uppercase tracking-[0.25em] text-emerald-200 mb-3 font-semibold">
               Dieser Samstag
             </p>
             <h2 className="font-display text-3xl sm:text-4xl font-bold leading-tight tracking-tight">

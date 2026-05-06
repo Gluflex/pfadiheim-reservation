@@ -59,6 +59,15 @@ export const STUFE_BLOCK: Record<Stufe, { bg: string; text: string }> = {
   af:    { bg: "bg-yellow-400", text: "text-black" },
 };
 
+/** Ring color used to mark the active (selected) Fähnli on the login screen. */
+export const STUFE_RING: Record<Stufe, string> = {
+  wolf:  "ring-green-700",
+  pfadi: "ring-red-700",
+  pio:   "ring-blue-700",
+  rover: "ring-violet-700",
+  af:    "ring-yellow-500",
+};
+
 /** Per-Fähnli mottos displayed inline after the group chip. Empty string = no motto. */
 export const GROUP_MOTTOS: Record<Group, string> = {
   Marabu: "",
