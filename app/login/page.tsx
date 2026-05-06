@@ -52,7 +52,7 @@ function LoginInner() {
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center"
-      style={{ backgroundImage: "url('/pfadiheim.png')" }}
+      style={{ backgroundImage: "url('/pfadiheim.webp')" }}
     >
       <div className="absolute inset-0 bg-black/40 dark:bg-black/60" aria-hidden="true" />
       <div className="relative w-full max-w-md bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/40 dark:border-zinc-800">
