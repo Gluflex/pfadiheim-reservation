@@ -24,7 +24,6 @@ export function getSql(): Sql {
 }
 
 // Proxy that forwards tagged-template calls to the lazily-created client.
-// This lets callers write `sql\`SELECT ...\`` without importing getSql() first.
 export const sql: Sql = new Proxy(((..._args: unknown[]) => undefined) as unknown as Sql, {
   apply(_t, _thisArg, args) {
     return (getSql() as unknown as (...a: unknown[]) => unknown)(...args);
@@ -54,6 +53,41 @@ export async function ensureSchema(): Promise<void> {
       `;
       await s`CREATE INDEX IF NOT EXISTS reservations_room_date_idx ON reservations (room, date)`;
       await s`CREATE INDEX IF NOT EXISTS reservations_date_idx ON reservations (date)`;
+
+      // Exclusion constraint: atomically prevents overlapping bookings for the
+      // same (room, date). Without this, the WHERE NOT EXISTS check in the
+      // INSERT is vulnerable to races between concurrent requests.
+      await s`CREATE EXTENSION IF NOT EXISTS btree_gist`;
+      try {
+        await s`
+          ALTER TABLE reservations
+          ADD CONSTRAINT reservations_no_overlap
+          EXCLUDE USING gist (
+            room WITH =,
+            date WITH =,
+            int4range(start_hour, end_hour) WITH &&
+          )
+        `;
+      } catch (err) {
+        // Ignore "already exists" — running twice is fine.
+        const msg = String(err);
+        if (!msg.includes("already exists") && !msg.includes("42710")) throw err;
+      }
+
+      // Login attempt log used by the rate-limiter on /api/login.
+      await s`
+        CREATE TABLE IF NOT EXISTS login_attempts (
+          id            BIGSERIAL PRIMARY KEY,
+          ip            TEXT NOT NULL,
+          group_name    TEXT NOT NULL,
+          succeeded     BOOLEAN NOT NULL,
+          attempted_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `;
+      await s`
+        CREATE INDEX IF NOT EXISTS login_attempts_ip_time_idx
+        ON login_attempts (ip, attempted_at)
+      `;
     })().catch((err) => {
       global.__pfadiSchemaReady = undefined;
       throw err;

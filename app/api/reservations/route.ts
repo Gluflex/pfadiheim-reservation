@@ -65,19 +65,36 @@ export async function POST(request: Request) {
 
   await ensureSchema();
 
-  const inserted = await sql<ReservationRow[]>`
-    INSERT INTO reservations (group_name, room, date, start_hour, end_hour, note)
-    SELECT ${session.group}, ${room}, ${date}::date, ${start_hour}, ${end_hour}, ${noteStr}
-    WHERE NOT EXISTS (
-      SELECT 1 FROM reservations
-      WHERE room = ${room}
-        AND date = ${date}::date
-        AND start_hour < ${end_hour}
-        AND end_hour > ${start_hour}
-    )
-    RETURNING id, group_name, room, to_char(date, 'YYYY-MM-DD') AS date,
-              start_hour, end_hour, note, created_at
-  `;
+  // The DB enforces overlap prevention atomically via the
+  // `reservations_no_overlap` EXCLUDE constraint set up in ensureSchema.
+  // We still ship the WHERE NOT EXISTS check as a fast path so the common case
+  // returns a clean 409 without raising an exception.
+  let inserted: ReservationRow[];
+  try {
+    inserted = await sql<ReservationRow[]>`
+      INSERT INTO reservations (group_name, room, date, start_hour, end_hour, note)
+      SELECT ${session.group}, ${room}, ${date}::date, ${start_hour}, ${end_hour}, ${noteStr}
+      WHERE NOT EXISTS (
+        SELECT 1 FROM reservations
+        WHERE room = ${room}
+          AND date = ${date}::date
+          AND start_hour < ${end_hour}
+          AND end_hour > ${start_hour}
+      )
+      RETURNING id, group_name, room, to_char(date, 'YYYY-MM-DD') AS date,
+                start_hour, end_hour, note, created_at
+    `;
+  } catch (err) {
+    const msg = String(err);
+    // Postgres exclusion constraint violation (SQLSTATE 23P01) — race lost.
+    if (msg.includes("23P01") || msg.includes("reservations_no_overlap")) {
+      return NextResponse.json(
+        { error: "Dieser Raum ist zu dieser Zeit bereits reserviert." },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 
   if (inserted.length === 0) {
     return NextResponse.json(

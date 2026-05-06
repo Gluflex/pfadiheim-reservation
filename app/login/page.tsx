@@ -94,7 +94,9 @@ function LoginInner() {
         setSubmitting(false);
         return;
       }
-      const next = params.get("next") || "/";
+      const rawNext = params.get("next") || "/";
+      // Defend against open redirects: only allow same-origin paths.
+      const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
       router.replace(next);
       router.refresh();
     } catch {
