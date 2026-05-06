@@ -6,6 +6,7 @@ import {
   GROUP_COLORS,
   HOUR_START,
   HOUR_END,
+  isAdmin,
   type Room,
   type Group,
 } from "@/lib/constants";
@@ -228,20 +229,20 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
                           const startCol = r.start_hour - HOUR_START;
                           const span = r.end_hour - r.start_hour;
                           const c = GROUP_COLORS[r.group_name];
-                          const isOwn = r.group_name === currentGroup;
+                          const canCancel = r.group_name === currentGroup || isAdmin(currentGroup);
                           return (
                             <button
                               key={r.id}
-                              onClick={() => isOwn && setConfirmCancel(r)}
+                              onClick={() => canCancel && setConfirmCancel(r)}
                               className={`absolute top-1 bottom-1 ${c.bg} ${c.text} rounded-md px-2 py-1 text-xs font-medium shadow-sm flex flex-col items-start justify-center overflow-hidden ${
-                                isOwn ? "cursor-pointer hover:ring-2 ring-offset-1 dark:ring-offset-zinc-900 " + c.ring : "cursor-default"
+                                canCancel ? "cursor-pointer hover:ring-2 ring-offset-1 dark:ring-offset-zinc-900 " + c.ring : "cursor-default"
                               }`}
                               style={{
                                 left: `calc(${(startCol / HOURS.length) * 100}% + 2px)`,
                                 width: `calc(${(span / HOURS.length) * 100}% - 4px)`,
                               }}
                               title={
-                                isOwn
+                                canCancel
                                   ? `${r.group_name} ${r.start_hour}:00–${r.end_hour}:00 (klicken zum Stornieren)`
                                   : `${r.group_name} ${r.start_hour}:00–${r.end_hour}:00`
                               }
@@ -263,11 +264,24 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
         )}
 
         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-3 text-center">
-          Klicke auf eine freie Zelle, um zu reservieren. Klicke auf eine deiner Reservationen (
-          <span className={`inline-block px-1 rounded ${GROUP_COLORS[currentGroup].bg} ${GROUP_COLORS[currentGroup].text}`}>
-            {currentGroup}
-          </span>
-          ), um sie zu stornieren.
+          Klicke auf eine freie Zelle, um zu reservieren.{" "}
+          {isAdmin(currentGroup) ? (
+            <>
+              Als{" "}
+              <span className={`inline-block px-1 rounded ${GROUP_COLORS[currentGroup].bg} ${GROUP_COLORS[currentGroup].text}`}>
+                {currentGroup}
+              </span>{" "}
+              kannst du jede Reservation stornieren.
+            </>
+          ) : (
+            <>
+              Klicke auf eine deiner Reservationen (
+              <span className={`inline-block px-1 rounded ${GROUP_COLORS[currentGroup].bg} ${GROUP_COLORS[currentGroup].text}`}>
+                {currentGroup}
+              </span>
+              ), um sie zu stornieren.
+            </>
+          )}
         </p>
       </main>
 

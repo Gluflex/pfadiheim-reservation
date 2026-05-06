@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { ensureSchema, sql, type ReservationRow } from "@/lib/db";
+import { isAdmin } from "@/lib/constants";
 
 export async function DELETE(
   _request: Request,
@@ -17,11 +18,17 @@ export async function DELETE(
 
   await ensureSchema();
 
-  const deleted = await sql<ReservationRow[]>`
-    DELETE FROM reservations
-    WHERE id = ${idNum} AND group_name = ${session.group}
-    RETURNING id
-  `;
+  const deleted = isAdmin(session.group)
+    ? await sql<ReservationRow[]>`
+        DELETE FROM reservations
+        WHERE id = ${idNum}
+        RETURNING id
+      `
+    : await sql<ReservationRow[]>`
+        DELETE FROM reservations
+        WHERE id = ${idNum} AND group_name = ${session.group}
+        RETURNING id
+      `;
 
   if (deleted.length === 0) {
     return NextResponse.json(

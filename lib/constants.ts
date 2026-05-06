@@ -10,9 +10,16 @@ export const GROUPS = [
   "Moskito",
   "Flädermuus",
   "Marabu",
+  "AF",
 ] as const;
 
 export type Group = (typeof GROUPS)[number];
+
+export const ADMIN_GROUPS: readonly Group[] = ["AF"];
+
+export function isAdmin(group: Group): boolean {
+  return ADMIN_GROUPS.includes(group);
+}
 
 export const ROOMS = [
   "Actionraum",
@@ -39,6 +46,7 @@ export const GROUP_COLORS: Record<Group, { bg: string; text: string; ring: strin
   Moskito:    { bg: "bg-lime-500",    text: "text-black", ring: "ring-lime-400" },
   Flädermuus: { bg: "bg-violet-500",  text: "text-white", ring: "ring-violet-400" },
   Marabu:     { bg: "bg-slate-600",   text: "text-white", ring: "ring-slate-400" },
+  AF:         { bg: "bg-indigo-700",  text: "text-white", ring: "ring-indigo-400" },
 };
 
 export function isGroup(x: unknown): x is Group {
