@@ -283,6 +283,16 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
             </>
           )}
         </p>
+
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
+          Bei Fragen:{" "}
+          <a
+            href="mailto:af@pfadibaar.ch"
+            className="text-emerald-700 dark:text-emerald-400 hover:underline font-medium"
+          >
+            af@pfadibaar.ch
+          </a>
+        </p>
       </main>
 
       {bookingTarget && (
