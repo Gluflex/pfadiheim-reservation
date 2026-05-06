@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Fraunces, Mansalva } from "next/font/google";
+import { Geist, Geist_Mono, Fraunces } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,10 +19,9 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
-const mansalva = Mansalva({
+const mistral = localFont({
+  src: "../public/fonts/mistral.ttf",
   variable: "--font-script",
-  subsets: ["latin"],
-  weight: "400",
   display: "swap",
 });
 
@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${mansalva.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${mistral.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
         {children}
