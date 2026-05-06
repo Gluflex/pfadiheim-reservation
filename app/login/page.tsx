@@ -23,7 +23,7 @@ function LoginInner() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!group) {
-      setError("Bitte wähle eine Gruppe aus.");
+      setError("Bitte wähle ein Fähnli aus.");
       return;
     }
     setSubmitting(true);
@@ -53,11 +53,11 @@ function LoginInner() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-emerald-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950 px-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-8 border border-zinc-200 dark:border-zinc-800">
         <h1 className="text-2xl font-bold mb-1 text-zinc-900 dark:text-zinc-50">Pfadiheim Reservation</h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Melde dich mit deiner Gruppe an.</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Melde dich mit deinem Fähnli an.</p>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Gruppe</label>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Fähnli</label>
             <div className="grid grid-cols-3 gap-2">
               {GROUPS.map((g) => {
                 const c = GROUP_COLORS[g];
