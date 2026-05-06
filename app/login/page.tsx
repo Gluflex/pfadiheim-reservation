@@ -50,8 +50,12 @@ function LoginInner() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-emerald-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950 px-4">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-8 border border-zinc-200 dark:border-zinc-800">
+    <div
+      className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center"
+      style={{ backgroundImage: "url('/pfadiheim.png')" }}
+    >
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/60" aria-hidden="true" />
+      <div className="relative w-full max-w-md bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/40 dark:border-zinc-800">
         <h1 className="text-2xl font-bold mb-1 text-zinc-900 dark:text-zinc-50">Pfadiheim Reservation</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Melde dich mit deinem Fähnli an.</p>
 
