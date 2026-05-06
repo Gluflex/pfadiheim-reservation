@@ -25,7 +25,7 @@ export function isAdmin(group: Group): boolean {
   return ADMIN_GROUPS.includes(group);
 }
 
-export type Stufe = "wolf" | "pfadi" | "pio" | "rover";
+export type Stufe = "wolf" | "pfadi" | "pio" | "rover" | "af";
 
 export const STUFEN: Record<Group, Stufe> = {
   Marabu: "wolf",
@@ -39,7 +39,7 @@ export const STUFEN: Record<Group, Stufe> = {
   Kondor: "pio",
   Widder: "rover",
   Grizzly: "rover",
-  AF: "rover",
+  AF: "af",
 };
 
 export const STUFE_TINT: Record<Stufe, { bg: string; bgHover: string }> = {
@@ -47,6 +47,7 @@ export const STUFE_TINT: Record<Stufe, { bg: string; bgHover: string }> = {
   pfadi: { bg: "bg-red-50 dark:bg-red-950/40",       bgHover: "hover:bg-red-100 dark:hover:bg-red-900/40" },
   pio:   { bg: "bg-blue-50 dark:bg-blue-950/40",     bgHover: "hover:bg-blue-100 dark:hover:bg-blue-900/40" },
   rover: { bg: "bg-violet-50 dark:bg-violet-950/40", bgHover: "hover:bg-violet-100 dark:hover:bg-violet-900/40" },
+  af:    { bg: "bg-yellow-50 dark:bg-yellow-950/40", bgHover: "hover:bg-yellow-100 dark:hover:bg-yellow-900/40" },
 };
 
 export const ROOMS = [
