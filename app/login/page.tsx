@@ -132,7 +132,7 @@ function LoginInner() {
           {/* Login card */}
           <div className="order-2 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-2xl shadow-2xl p-7 sm:p-8 border border-white/40 dark:border-zinc-800">
             <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 leading-none">
-              Pfadiheim
+              Pfadiheim Baar
             </h1>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 mb-6">
               Melde dich mit deinem Fähnli an.
