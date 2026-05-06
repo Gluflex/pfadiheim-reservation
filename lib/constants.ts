@@ -1,15 +1,19 @@
 export const GROUPS = [
-  "Grizzly",
-  "Widder",
-  "Sperber",
+  // Wölfli (grün)
+  "Marabu",
+  "Kobra",
+  "Flamingo",
+  // Pfadi (rot)
   "Specht",
   "Tiger",
-  "Flamingo",
-  "Kobra",
-  "Kondor",
+  "Sperber",
+  // Pio (blau)
   "Moskito",
   "Flädermuus",
-  "Marabu",
+  "Kondor",
+  // Rover / AF (violett)
+  "Widder",
+  "Grizzly",
   "AF",
 ] as const;
 
@@ -20,6 +24,30 @@ export const ADMIN_GROUPS: readonly Group[] = ["AF"];
 export function isAdmin(group: Group): boolean {
   return ADMIN_GROUPS.includes(group);
 }
+
+export type Stufe = "wolf" | "pfadi" | "pio" | "rover";
+
+export const STUFEN: Record<Group, Stufe> = {
+  Marabu: "wolf",
+  Kobra: "wolf",
+  Flamingo: "wolf",
+  Specht: "pfadi",
+  Tiger: "pfadi",
+  Sperber: "pfadi",
+  Moskito: "pio",
+  Flädermuus: "pio",
+  Kondor: "pio",
+  Widder: "rover",
+  Grizzly: "rover",
+  AF: "rover",
+};
+
+export const STUFE_TINT: Record<Stufe, { bg: string; bgHover: string }> = {
+  wolf:  { bg: "bg-green-50 dark:bg-green-950/40",   bgHover: "hover:bg-green-100 dark:hover:bg-green-900/40" },
+  pfadi: { bg: "bg-red-50 dark:bg-red-950/40",       bgHover: "hover:bg-red-100 dark:hover:bg-red-900/40" },
+  pio:   { bg: "bg-blue-50 dark:bg-blue-950/40",     bgHover: "hover:bg-blue-100 dark:hover:bg-blue-900/40" },
+  rover: { bg: "bg-violet-50 dark:bg-violet-950/40", bgHover: "hover:bg-violet-100 dark:hover:bg-violet-900/40" },
+};
 
 export const ROOMS = [
   "Actionraum",

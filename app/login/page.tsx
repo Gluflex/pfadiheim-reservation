@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { GROUPS, GROUP_COLORS, type Group } from "@/lib/constants";
+import { GROUPS, GROUP_COLORS, STUFEN, STUFE_TINT, type Group } from "@/lib/constants";
 
 export default function LoginPage() {
   return (
@@ -61,6 +61,7 @@ function LoginInner() {
             <div className="grid grid-cols-3 gap-2">
               {GROUPS.map((g) => {
                 const c = GROUP_COLORS[g];
+                const tint = STUFE_TINT[STUFEN[g]];
                 const active = group === g;
                 return (
                   <button
@@ -70,7 +71,7 @@ function LoginInner() {
                     className={`text-xs font-medium px-2 py-2 rounded-lg transition-all ${
                       active
                         ? `${c.bg} ${c.text} ring-2 ${c.ring} shadow-md`
-                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                        : `${tint.bg} ${tint.bgHover} text-zinc-700 dark:text-zinc-200`
                     }`}
                   >
                     {g}
