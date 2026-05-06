@@ -130,7 +130,7 @@ function LoginInner() {
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-5xl grid lg:grid-cols-[1fr_minmax(0,420px)] gap-8 lg:gap-12 items-start">
           {/* Login card */}
-          <div className="order-1 lg:order-2 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-2xl shadow-2xl p-7 sm:p-8 border border-white/40 dark:border-zinc-800">
+          <div className="order-2 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-2xl shadow-2xl p-7 sm:p-8 border border-white/40 dark:border-zinc-800">
             <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 leading-none">
               Pfadiheim
             </h1>
@@ -207,7 +207,7 @@ function LoginInner() {
           </div>
 
           {/* Upcoming Saturday — no card chrome, white-on-photo */}
-          <div className="order-2 lg:order-1 text-white text-shadow-soft">
+          <div className="order-1 text-white text-shadow-soft">
             <p className="text-xs uppercase tracking-[0.25em] text-emerald-200 mb-3 font-semibold">
               Dieser Samstag
             </p>
