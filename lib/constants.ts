@@ -86,6 +86,7 @@ export const GROUP_MOTTOS: Record<Group, string> = {
 
 export const ROOMS = [
   "Actionraum",
+  "Bastelraum",
   "Chillerraum",
   "Grosser Saal",
   "Küche",
