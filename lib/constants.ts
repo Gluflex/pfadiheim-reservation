@@ -50,6 +50,31 @@ export const STUFE_TINT: Record<Stufe, { bg: string; bgHover: string }> = {
   af:    { bg: "bg-yellow-50 dark:bg-yellow-950/40", bgHover: "hover:bg-yellow-100 dark:hover:bg-yellow-900/40" },
 };
 
+/** Saturated Stufe colors used as the primary booking-block fill on the calendar. */
+export const STUFE_BLOCK: Record<Stufe, { bg: string; text: string }> = {
+  wolf:  { bg: "bg-green-600",  text: "text-white" },
+  pfadi: { bg: "bg-red-600",    text: "text-white" },
+  pio:   { bg: "bg-blue-600",   text: "text-white" },
+  rover: { bg: "bg-violet-600", text: "text-white" },
+  af:    { bg: "bg-yellow-400", text: "text-black" },
+};
+
+/** Per-Fähnli mottos displayed inline after the group chip. Empty string = no motto. */
+export const GROUP_MOTTOS: Record<Group, string> = {
+  Marabu: "",
+  Kobra: "",
+  Flamingo: "",
+  Specht: "Matrosen Ahoi!",
+  Tiger: "Kellog's Frosties weckt den Tiger in dir",
+  Sperber: "Allzeit Breit",
+  Moskito: "Here we go!",
+  Flädermuus: "chunsch no druus?",
+  Kondor: "",
+  Widder: "",
+  Grizzly: "G-R-I-DOUBLE-Z-L-Y, that's Grizzly",
+  AF: "",
+};
+
 export const ROOMS = [
   "Actionraum",
   "Chillerraum",

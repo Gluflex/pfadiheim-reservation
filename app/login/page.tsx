@@ -7,6 +7,7 @@ import {
   GROUP_COLORS,
   STUFEN,
   STUFE_TINT,
+  STUFE_BLOCK,
   ROOMS,
   type Group,
   type Room,
@@ -95,119 +96,150 @@ function LoginInner() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 py-8 bg-cover bg-center"
+      className="min-h-screen flex flex-col bg-cover bg-center"
       style={{ backgroundImage: "url('/pfadiheim.webp')" }}
     >
-      <div className="absolute inset-0 bg-black/40 dark:bg-black/60" aria-hidden="true" />
-      <div className="relative w-full max-w-5xl grid lg:grid-cols-2 gap-4">
-        {/* Login card */}
-        <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/40 dark:border-zinc-800">
-          <h1 className="text-2xl font-bold mb-1 text-zinc-900 dark:text-zinc-50">Pfadiheim Reservation</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Melde dich mit deinem Fähnli an.</p>
+      {/* Soft uniform tint */}
+      <div className="absolute inset-0 bg-black/15" aria-hidden="true" />
+      {/* Vignette: dark edges, transparent middle */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "radial-gradient(ellipse 90% 70% at 50% 50%, transparent 35%, rgba(0,0,0,0.55) 90%, rgba(0,0,0,0.75) 100%)",
+        }}
+        aria-hidden="true"
+      />
 
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Fähnli</label>
-              <div className="grid grid-cols-3 gap-2">
-                {GROUPS.map((g) => {
-                  const c = GROUP_COLORS[g];
-                  const tint = STUFE_TINT[STUFEN[g]];
-                  const active = group === g;
+      {/* Brand wordmark, top-left */}
+      <div className="relative z-10 px-6 sm:px-10 pt-6 sm:pt-8">
+        <span className="font-script text-4xl sm:text-5xl text-white text-shadow-soft select-none">
+          Pfadi Baar
+        </span>
+      </div>
+
+      <div className="relative z-10 flex-1 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-5xl grid lg:grid-cols-[minmax(0,420px)_1fr] gap-8 lg:gap-12 items-start">
+          {/* Login card */}
+          <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-2xl shadow-2xl p-7 sm:p-8 border border-white/40 dark:border-zinc-800">
+            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 leading-none">
+              Pfadiheim
+            </h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 mb-6">
+              Melde dich mit deinem Fähnli an.
+            </p>
+
+            <form onSubmit={onSubmit} className="space-y-5">
+              <div>
+                <label className="block text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+                  Fähnli
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {GROUPS.map((g) => {
+                    const c = GROUP_COLORS[g];
+                    const tint = STUFE_TINT[STUFEN[g]];
+                    const active = group === g;
+                    return (
+                      <button
+                        type="button"
+                        key={g}
+                        onClick={() => setGroup(g)}
+                        className={`text-xs font-medium px-2 py-2 rounded-lg transition-all ${
+                          active
+                            ? `${c.bg} ${c.text} ring-2 ${c.ring} shadow-md`
+                            : `${tint.bg} ${tint.bgHover} text-zinc-700 dark:text-zinc-200`
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="pw"
+                  className="block text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2"
+                >
+                  Passwort
+                </label>
+                <input
+                  id="pw"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  className="w-full px-3 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                />
+              </div>
+
+              {error && (
+                <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-3 py-2 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting || !group || !password}
+                className="w-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition-colors"
+              >
+                {submitting ? "Anmelden …" : "Anmelden"}
+              </button>
+            </form>
+          </div>
+
+          {/* Upcoming Saturday — no card chrome, white-on-photo */}
+          <div className="text-white text-shadow-soft">
+            <p className="font-script text-xl sm:text-2xl text-emerald-300 mb-1">
+              Dieser Samstag
+            </p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold leading-tight tracking-tight">
+              {nextSat?.label ?? "…"}
+            </h2>
+
+            {loadingRes ? (
+              <p className="mt-6 text-sm text-white/80">Lade Reservationen …</p>
+            ) : (
+              <ul className="mt-6 divide-y divide-white/20">
+                {ROOMS.map((room) => {
+                  const roomRes = reservations
+                    .filter((r) => r.room === room)
+                    .sort((a, b) => a.start_hour - b.start_hour);
                   return (
-                    <button
-                      type="button"
-                      key={g}
-                      onClick={() => setGroup(g)}
-                      className={`text-xs font-medium px-2 py-2 rounded-lg transition-all ${
-                        active
-                          ? `${c.bg} ${c.text} ring-2 ${c.ring} shadow-md`
-                          : `${tint.bg} ${tint.bgHover} text-zinc-700 dark:text-zinc-200`
-                      }`}
-                    >
-                      {g}
-                    </button>
+                    <li key={room} className="py-3 flex items-baseline gap-4">
+                      <div className="w-28 shrink-0 text-sm font-semibold tracking-wide">
+                        {room}
+                      </div>
+                      <div className="flex-1 flex flex-wrap gap-1.5">
+                        {roomRes.length === 0 ? (
+                          <span className="text-xs text-white/55 italic font-normal">Frei</span>
+                        ) : (
+                          roomRes.map((r) => {
+                            const block = STUFE_BLOCK[STUFEN[r.group_name]];
+                            return (
+                              <span
+                                key={r.id}
+                                className={`inline-flex items-baseline gap-1.5 px-2 py-1 rounded-md text-xs font-semibold ${block.bg} ${block.text} shadow-sm`}
+                                title={r.note ?? undefined}
+                              >
+                                <span>{r.group_name}</span>
+                                <span className="font-normal opacity-90 tabular-nums">
+                                  {String(r.start_hour).padStart(2, "0")}–{String(r.end_hour).padStart(2, "0")}
+                                </span>
+                              </span>
+                            );
+                          })
+                        )}
+                      </div>
+                    </li>
                   );
                 })}
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="pw" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Passwort
-              </label>
-              <input
-                id="pw"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-
-            {error && (
-              <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-3 py-2 rounded-lg">
-                {error}
-              </div>
+              </ul>
             )}
-
-            <button
-              type="submit"
-              disabled={submitting || !group || !password}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors"
-            >
-              {submitting ? "Anmelden …" : "Anmelden"}
-            </button>
-          </form>
-        </div>
-
-        {/* Upcoming Saturday card */}
-        <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/40 dark:border-zinc-800">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Nächster Samstag</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-            {nextSat?.label ?? "…"}
-          </p>
-
-          {loadingRes ? (
-            <p className="text-sm text-zinc-500">Lade …</p>
-          ) : (
-            <ul className="space-y-3">
-              {ROOMS.map((room) => {
-                const roomRes = reservations
-                  .filter((r) => r.room === room)
-                  .sort((a, b) => a.start_hour - b.start_hour);
-                return (
-                  <li key={room} className="flex items-start gap-3">
-                    <div className="w-28 shrink-0 text-sm font-medium text-zinc-700 dark:text-zinc-300 pt-0.5">
-                      {room}
-                    </div>
-                    <div className="flex-1 flex flex-wrap gap-1.5">
-                      {roomRes.length === 0 ? (
-                        <span className="text-xs text-zinc-400 dark:text-zinc-500 italic">Frei</span>
-                      ) : (
-                        roomRes.map((r) => {
-                          const c = GROUP_COLORS[r.group_name];
-                          return (
-                            <span
-                              key={r.id}
-                              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${c.bg} ${c.text}`}
-                              title={r.note ?? undefined}
-                            >
-                              <span>{r.group_name}</span>
-                              <span className="opacity-90">
-                                {String(r.start_hour).padStart(2, "0")}–{String(r.end_hour).padStart(2, "0")}
-                              </span>
-                            </span>
-                          );
-                        })
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          </div>
         </div>
       </div>
     </div>

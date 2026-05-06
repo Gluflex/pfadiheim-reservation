@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: oklch(0.99 0.005 140);
+  --foreground: oklch(0.18 0.01 140);
+
+  /* Hour-zone tints: morning warm, afternoon cool, evening dim */
+  --zone-morning:   oklch(0.975 0.022 75);
+  --zone-afternoon: oklch(0.975 0.012 220);
+  --zone-evening:   oklch(0.93 0.025 270);
 }
 
 @theme inline {
@@ -10,17 +15,37 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+  --font-script: var(--font-script);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: oklch(0.13 0.005 140);
+    --foreground: oklch(0.95 0.005 140);
+
+    --zone-morning:   oklch(0.215 0.030 70);
+    --zone-afternoon: oklch(0.215 0.020 220);
+    --zone-evening:   oklch(0.18 0.030 270);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-feature-settings: "ss01";
+}
+
+.font-script {
+  font-family: var(--font-script), "Brush Script MT", cursive;
+}
+
+/* Used on the login page so white text remains legible against the photo. */
+.text-shadow-soft {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 12px rgba(0, 0, 0, 0.4);
 }

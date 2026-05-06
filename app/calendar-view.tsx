@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ROOMS,
+  STUFEN,
+  STUFE_BLOCK,
   GROUP_COLORS,
+  GROUP_MOTTOS,
   HOUR_START,
   HOUR_END,
   isAdmin,
@@ -23,6 +26,8 @@ type Reservation = {
 };
 
 const HOURS: number[] = Array.from({ length: HOUR_END - HOUR_START }, (_, i) => i + HOUR_START);
+const ZONE_BG_GRADIENT =
+  "linear-gradient(to right, var(--zone-morning) 0%, var(--zone-morning) calc(4 / 13 * 100%), var(--zone-afternoon) calc(4 / 13 * 100%), var(--zone-afternoon) calc(9 / 13 * 100%), var(--zone-evening) calc(9 / 13 * 100%), var(--zone-evening) 100%)";
 
 function formatDateISO(d: Date): string {
   const y = d.getFullYear();
@@ -35,8 +40,8 @@ function nextSaturdays(count: number): Date[] {
   const out: Date[] = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const dow = today.getDay(); // 0=Sun .. 6=Sat
-  const daysUntilSat = (6 - dow + 7) % 7; // 0 if today is Sat
+  const dow = today.getDay();
+  const daysUntilSat = (6 - dow + 7) % 7;
   const first = new Date(today);
   first.setDate(today.getDate() + daysUntilSat);
   for (let i = 0; i < count; i++) {
@@ -103,18 +108,35 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
     window.location.href = "/login";
   }
 
+  const currentBlock = STUFE_BLOCK[STUFEN[currentGroup]];
+  const adminUser = isAdmin(currentGroup);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 sm:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-20">
-        <div>
-          <h1 className="text-lg sm:text-xl font-semibold">Pfadiheim Reservation</h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Eingeloggt als{" "}
-            <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${GROUP_COLORS[currentGroup].bg} ${GROUP_COLORS[currentGroup].text}`}>
-              {currentGroup}
+        <div className="flex items-baseline gap-3 min-w-0">
+          <span className="font-script text-3xl leading-none text-emerald-700 dark:text-emerald-400 select-none">
+            Pfadi Baar
+          </span>
+          <span className="hidden sm:block h-6 w-px bg-zinc-200 dark:bg-zinc-700" aria-hidden="true" />
+          <div className="hidden sm:flex items-baseline gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <span className="font-display tracking-tight font-semibold text-zinc-900 dark:text-zinc-100">
+              Pfadiheim
             </span>
-          </p>
+            <span className="text-zinc-400">·</span>
+            <span>
+              eingeloggt als{" "}
+              <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${currentBlock.bg} ${currentBlock.text}`}>
+                {currentGroup}
+              </span>
+              {GROUP_MOTTOS[currentGroup] && (
+                <span className="ml-2 italic text-zinc-500 dark:text-zinc-400">
+                  {GROUP_MOTTOS[currentGroup]}
+                </span>
+              )}
+            </span>
+          </div>
         </div>
         <button
           onClick={logout}
@@ -137,15 +159,15 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
                 onClick={() => setSelectedDate(iso)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap relative ${
                   active
-                    ? "bg-emerald-600 text-white"
-                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                    ? "bg-emerald-700 text-white"
+                    : "bg-transparent text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
               >
                 {formatSatLabel(d)}
                 {count > 0 && (
                   <span
                     className={`ml-2 inline-block min-w-[1.25rem] text-center text-xs rounded-full px-1.5 py-0.5 ${
-                      active ? "bg-white/30" : "bg-emerald-600 text-white"
+                      active ? "bg-white/30 text-white" : "bg-emerald-700 text-white"
                     }`}
                   >
                     {count}
@@ -169,15 +191,33 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
               <div className="min-w-[800px]">
                 {/* Hour header */}
                 <div className="flex border-b border-zinc-200 dark:border-zinc-800">
-                  <div className="w-32 shrink-0 px-3 py-2 text-xs font-medium text-zinc-500 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800">
+                  <div className="w-32 shrink-0 px-3 py-2 text-[11px] uppercase tracking-wider font-medium text-zinc-400 dark:text-zinc-500 border-r border-zinc-200 dark:border-zinc-800">
                     Raum
                   </div>
-                  <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${HOURS.length}, minmax(0, 1fr))` }}>
-                    {HOURS.map((h) => (
-                      <div key={h} className="text-xs text-zinc-500 text-center py-2 border-r border-zinc-100 dark:border-zinc-800 last:border-r-0">
-                        {String(h).padStart(2, "0")}
-                      </div>
-                    ))}
+                  <div
+                    className="flex-1 grid"
+                    style={{
+                      gridTemplateColumns: `repeat(${HOURS.length}, minmax(0, 1fr))`,
+                      backgroundImage: ZONE_BG_GRADIENT,
+                    }}
+                  >
+                    {HOURS.map((h, i) => {
+                      const showLabel = i % 3 === 0;
+                      return (
+                        <div
+                          key={h}
+                          className="text-center py-2"
+                        >
+                          {showLabel ? (
+                            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 tabular-nums">
+                              {String(h).padStart(2, "0")}
+                            </span>
+                          ) : (
+                            <span className="text-zinc-300 dark:text-zinc-600 text-[10px]">·</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -189,54 +229,54 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
                       key={room}
                       className="flex border-b border-zinc-100 dark:border-zinc-800 last:border-b-0"
                     >
-                      <div className="w-32 shrink-0 px-3 py-3 text-sm font-medium bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex items-center">
+                      <div className="w-32 shrink-0 px-3 py-3 text-sm font-medium text-zinc-700 dark:text-zinc-200 border-r border-zinc-200 dark:border-zinc-800 flex items-center">
                         {room}
                       </div>
                       <div
                         className="flex-1 relative grid"
                         style={{
                           gridTemplateColumns: `repeat(${HOURS.length}, minmax(0, 1fr))`,
-                          minHeight: "56px",
+                          minHeight: "60px",
+                          backgroundImage: ZONE_BG_GRADIENT,
                         }}
                       >
-                        {/* Empty hour cells (clickable to book) */}
+                        {/* Empty hour cells (clickable to book) — transparent so zone tint shows */}
                         {HOURS.map((h) => {
                           const booked = isHourBooked(room, h);
-                          if (booked) {
-                            return (
-                              <div
-                                key={h}
-                                className="border-r border-zinc-100 dark:border-zinc-800 last:border-r-0"
-                              />
-                            );
-                          }
+                          if (booked) return <div key={h} aria-hidden="true" />;
                           return (
                             <button
                               key={h}
                               onClick={() => setBookingTarget({ room, startHour: h })}
-                              className="border-r border-zinc-100 dark:border-zinc-800 last:border-r-0 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors group"
+                              className="hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40 transition-colors group relative"
                               title={`${room} um ${String(h).padStart(2, "0")}:00 buchen`}
                             >
-                              <span className="opacity-0 group-hover:opacity-100 text-xs text-emerald-700 dark:text-emerald-400 font-medium">
+                              <span className="opacity-0 group-hover:opacity-100 text-xs text-emerald-800 dark:text-emerald-300 font-medium">
                                 + Buchen
                               </span>
                             </button>
                           );
                         })}
 
-                        {/* Booking blocks (absolute over the grid) */}
+                        {/* Booking blocks */}
                         {roomReservations.map((r) => {
                           const startCol = r.start_hour - HOUR_START;
                           const span = r.end_hour - r.start_hour;
-                          const c = GROUP_COLORS[r.group_name];
-                          const canCancel = r.group_name === currentGroup || isAdmin(currentGroup);
+                          const block = STUFE_BLOCK[STUFEN[r.group_name]];
+                          const isOwn = r.group_name === currentGroup;
+                          const canCancel = isOwn || adminUser;
+
+                          const emphasis = isOwn
+                            ? "shadow-md ring-1 ring-white/40 hover:ring-2 hover:ring-white cursor-pointer"
+                            : adminUser
+                              ? "shadow-sm opacity-90 hover:opacity-100 hover:ring-2 hover:ring-white/70 cursor-pointer"
+                              : "opacity-75 cursor-default";
+
                           return (
                             <button
                               key={r.id}
                               onClick={() => canCancel && setConfirmCancel(r)}
-                              className={`absolute top-1 bottom-1 ${c.bg} ${c.text} rounded-md px-2 py-1 text-xs font-medium shadow-sm flex flex-col items-start justify-center overflow-hidden ${
-                                canCancel ? "cursor-pointer hover:ring-2 ring-offset-1 dark:ring-offset-zinc-900 " + c.ring : "cursor-default"
-                              }`}
+                              className={`absolute top-1 bottom-1 ${block.bg} ${block.text} rounded-md px-2 py-1 text-xs font-semibold flex flex-col items-start justify-center overflow-hidden transition-all ${emphasis}`}
                               style={{
                                 left: `calc(${(startCol / HOURS.length) * 100}% + 2px)`,
                                 width: `calc(${(span / HOURS.length) * 100}% - 4px)`,
@@ -244,11 +284,11 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
                               title={
                                 canCancel
                                   ? `${r.group_name} ${r.start_hour}:00–${r.end_hour}:00 (klicken zum Stornieren)`
-                                  : `${r.group_name} ${r.start_hour}:00–${r.end_hour}:00`
+                                  : `${r.group_name} ${r.start_hour}:00–${r.end_hour}:00${r.note ? ` · ${r.note}` : ""}`
                               }
                             >
                               <span className="truncate w-full">{r.group_name}</span>
-                              <span className="text-[10px] opacity-90">
+                              <span className="text-[10px] font-normal opacity-90 tabular-nums">
                                 {String(r.start_hour).padStart(2, "0")}–{String(r.end_hour).padStart(2, "0")}
                               </span>
                             </button>
@@ -263,36 +303,31 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
           </div>
         )}
 
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-3 text-center">
-          Klicke auf eine freie Zelle, um zu reservieren.{" "}
-          {isAdmin(currentGroup) ? (
-            <>
-              Als{" "}
-              <span className={`inline-block px-1 rounded ${GROUP_COLORS[currentGroup].bg} ${GROUP_COLORS[currentGroup].text}`}>
-                {currentGroup}
-              </span>{" "}
-              kannst du jede Reservation stornieren.
-            </>
-          ) : (
-            <>
-              Klicke auf eine deiner Reservationen (
-              <span className={`inline-block px-1 rounded ${GROUP_COLORS[currentGroup].bg} ${GROUP_COLORS[currentGroup].text}`}>
-                {currentGroup}
-              </span>
-              ), um sie zu stornieren.
-            </>
-          )}
-        </p>
-
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-          Bei Fragen:{" "}
-          <a
-            href="mailto:af@pfadibaar.ch"
-            className="text-emerald-700 dark:text-emerald-400 hover:underline font-medium"
-          >
-            af@pfadibaar.ch
-          </a>
-        </p>
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <p>
+            Klicke auf eine freie Zelle, um zu reservieren.{" "}
+            {adminUser ? (
+              <>
+                Als{" "}
+                <span className={`inline-block px-1 rounded ${currentBlock.bg} ${currentBlock.text}`}>
+                  {currentGroup}
+                </span>{" "}
+                kannst du jede Reservation stornieren.
+              </>
+            ) : (
+              <>Klicke deine eigene Reservation, um sie zu stornieren.</>
+            )}
+          </p>
+          <p>
+            Bei Fragen:{" "}
+            <a
+              href="mailto:af@pfadibaar.ch"
+              className="text-emerald-700 dark:text-emerald-400 hover:underline font-medium"
+            >
+              af@pfadibaar.ch
+            </a>
+          </p>
+        </div>
       </main>
 
       {bookingTarget && (
@@ -344,7 +379,6 @@ function BookingModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // For a chosen startHour, the maximum endHour is bounded by the next existing booking.
   const nextBookingStart = existing
     .filter((r) => r.start_hour > startHour)
     .reduce<number>((min, r) => Math.min(min, r.start_hour), HOUR_END);
@@ -398,7 +432,7 @@ function BookingModal({
         className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl max-w-md w-full p-6 border border-zinc-200 dark:border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold mb-1">Raum reservieren</h2>
+        <h2 className="font-display text-xl font-bold mb-1">Raum reservieren</h2>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
           {room} — {new Date(date + "T00:00").toLocaleDateString("de-CH", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
         </p>
@@ -463,7 +497,7 @@ function BookingModal({
           <button
             onClick={submit}
             disabled={submitting || validEndHours.length === 0}
-            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 text-white text-sm font-medium"
+            className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 text-white text-sm font-medium"
           >
             {submitting ? "Reserviere …" : "Reservieren"}
           </button>
@@ -484,6 +518,8 @@ function CancelModal({
 }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Suppress unused-import warning by making sure GROUP_COLORS stays referenced if needed in future.
+  void GROUP_COLORS;
 
   async function submit() {
     setSubmitting(true);
@@ -509,7 +545,7 @@ function CancelModal({
         className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl max-w-sm w-full p-6 border border-zinc-200 dark:border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold mb-2">Reservation stornieren?</h2>
+        <h2 className="font-display text-xl font-bold mb-2">Reservation stornieren?</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
           {reservation.room} am{" "}
           {new Date(reservation.date + "T00:00").toLocaleDateString("de-CH", { weekday: "short", day: "2-digit", month: "short" })}{" "}
