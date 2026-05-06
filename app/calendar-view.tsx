@@ -29,6 +29,11 @@ const HOURS: number[] = Array.from({ length: HOUR_END - HOUR_START }, (_, i) => 
 const ZONE_BG_GRADIENT =
   "linear-gradient(to right, var(--zone-morning) 0%, var(--zone-morning) calc(4 / 13 * 100%), var(--zone-afternoon) calc(4 / 13 * 100%), var(--zone-afternoon) calc(9 / 13 * 100%), var(--zone-evening) calc(9 / 13 * 100%), var(--zone-evening) 100%)";
 
+/** Hours that anchor the eye: noon (lunch), 14 (typical activity start), 17 (Z'Vieri / end). */
+const ANCHOR_HOURS = new Set([12, 14, 17]);
+/** The hour the standard Saturday activity tends to start — gets a tick. */
+const PRIMARY_ANCHOR = 14;
+
 function formatDateISO(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -201,19 +206,31 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
                       backgroundImage: ZONE_BG_GRADIENT,
                     }}
                   >
-                    {HOURS.map((h, i) => {
-                      const showLabel = i % 3 === 0;
+                    {HOURS.map((h) => {
+                      const isAnchor = ANCHOR_HOURS.has(h);
+                      const isPrimary = h === PRIMARY_ANCHOR;
                       return (
                         <div
                           key={h}
-                          className="text-center py-2"
+                          className={`text-center py-1.5 border-r last:border-r-0 ${
+                            isAnchor
+                              ? "border-zinc-300 dark:border-zinc-600"
+                              : "border-zinc-200/50 dark:border-zinc-700/40"
+                          }`}
                         >
-                          {showLabel ? (
-                            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 tabular-nums">
-                              {String(h).padStart(2, "0")}
-                            </span>
-                          ) : (
-                            <span className="text-zinc-300 dark:text-zinc-600 text-[10px]">·</span>
+                          <span
+                            className={`block text-[11px] tabular-nums leading-tight ${
+                              isPrimary
+                                ? "font-bold text-emerald-700 dark:text-emerald-400"
+                                : isAnchor
+                                  ? "font-semibold text-zinc-800 dark:text-zinc-100"
+                                  : "font-normal text-zinc-500 dark:text-zinc-400"
+                            }`}
+                          >
+                            {String(h).padStart(2, "0")}
+                          </span>
+                          {isPrimary && (
+                            <span className="block mx-auto mt-0.5 h-0.5 w-3 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
                           )}
                         </div>
                       );
@@ -240,15 +257,22 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
                           backgroundImage: ZONE_BG_GRADIENT,
                         }}
                       >
-                        {/* Empty hour cells (clickable to book) — transparent so zone tint shows */}
+                        {/* Empty hour cells (clickable to book) — transparent so zone tint shows.
+                            All cells render right-borders so vertical gridlines run through every row. */}
                         {HOURS.map((h) => {
                           const booked = isHourBooked(room, h);
-                          if (booked) return <div key={h} aria-hidden="true" />;
+                          const isAnchor = ANCHOR_HOURS.has(h);
+                          const borderClass = `border-r last:border-r-0 ${
+                            isAnchor
+                              ? "border-zinc-300/80 dark:border-zinc-600/60"
+                              : "border-zinc-200/40 dark:border-zinc-700/30"
+                          }`;
+                          if (booked) return <div key={h} className={borderClass} aria-hidden="true" />;
                           return (
                             <button
                               key={h}
                               onClick={() => setBookingTarget({ room, startHour: h })}
-                              className="hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40 transition-colors group relative"
+                              className={`${borderClass} hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40 transition-colors group relative`}
                               title={`${room} um ${String(h).padStart(2, "0")}:00 buchen`}
                             >
                               <span className="opacity-0 group-hover:opacity-100 text-xs text-emerald-800 dark:text-emerald-300 font-medium">
