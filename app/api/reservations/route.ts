@@ -1,25 +1,25 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { getSession } from "@/lib/auth";
-import { ensureSchema, sql, type ReservationRow } from "@/lib/db";
+import {
+  ensureSchema,
+  getReservationsForWindow,
+  RESERVATIONS_CACHE_TAG,
+  sql,
+  type ReservationRow,
+} from "@/lib/db";
 import { isRoom, HOUR_START, HOUR_END } from "@/lib/constants";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(request: Request) {
-  await ensureSchema();
   const url = new URL(request.url);
   const from = url.searchParams.get("from");
   const to = url.searchParams.get("to");
   if (!from || !to || !DATE_RE.test(from) || !DATE_RE.test(to)) {
     return NextResponse.json({ error: "Invalid or missing 'from'/'to' (YYYY-MM-DD)" }, { status: 400 });
   }
-  const rows = await sql<ReservationRow[]>`
-    SELECT id, group_name, room, to_char(date, 'YYYY-MM-DD') AS date,
-           start_hour, end_hour, note, created_at
-    FROM reservations
-    WHERE date >= ${from} AND date <= ${to}
-    ORDER BY date, room, start_hour
-  `;
+  const rows = await getReservationsForWindow(from, to);
   return NextResponse.json({ reservations: rows });
 }
 
@@ -103,5 +103,6 @@ export async function POST(request: Request) {
     );
   }
 
+  revalidateTag(RESERVATIONS_CACHE_TAG, { expire: 0 });
   return NextResponse.json({ reservation: inserted[0] }, { status: 201 });
 }

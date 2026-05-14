@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ROOMS,
   STUFEN,
@@ -41,22 +42,6 @@ function formatDateISO(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function nextSaturdays(count: number): Date[] {
-  const out: Date[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const dow = today.getDay();
-  const daysUntilSat = (6 - dow + 7) % 7;
-  const first = new Date(today);
-  first.setDate(today.getDate() + daysUntilSat);
-  for (let i = 0; i < count; i++) {
-    const d = new Date(first);
-    d.setDate(first.getDate() + 7 * i);
-    out.push(d);
-  }
-  return out;
-}
-
 function formatSatLabel(d: Date): string {
   return d.toLocaleDateString("de-CH", {
     weekday: "short",
@@ -65,36 +50,28 @@ function formatSatLabel(d: Date): string {
   });
 }
 
-export default function CalendarView({ currentGroup }: { currentGroup: Group }) {
-  const saturdays = useMemo(() => nextSaturdays(12), []);
-  const [selectedDate, setSelectedDate] = useState<string>(() => formatDateISO(saturdays[0]));
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function CalendarView({
+  currentGroup,
+  initialReservations,
+  saturdayIsoDates,
+}: {
+  currentGroup: Group;
+  initialReservations: Reservation[];
+  saturdayIsoDates: string[];
+}) {
+  const router = useRouter();
+  const saturdays = useMemo(
+    () => saturdayIsoDates.map((iso) => new Date(iso + "T00:00")),
+    [saturdayIsoDates]
+  );
+  const [selectedDate, setSelectedDate] = useState<string>(() => saturdayIsoDates[0]);
+  const reservations = initialReservations;
   const [bookingTarget, setBookingTarget] = useState<{ room: Room; startHour: number } | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<Reservation | null>(null);
 
-  const fromDate = formatDateISO(saturdays[0]);
-  const toDate = formatDateISO(saturdays[saturdays.length - 1]);
-
-  async function loadReservations() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/reservations?from=${fromDate}&to=${toDate}`, { cache: "no-store" });
-      if (!res.ok) throw new Error("Laden fehlgeschlagen");
-      const data = await res.json();
-      setReservations(data.reservations);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler");
-    } finally {
-      setLoading(false);
-    }
+  function reloadReservations() {
+    router.refresh();
   }
-
-  useEffect(() => {
-    loadReservations();
-  }, [fromDate, toDate]);
 
   const reservationsForSelected = reservations.filter((r) => r.date === selectedDate);
 
@@ -186,12 +163,7 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
 
       {/* Schedule */}
       <main className="flex-1 px-4 sm:px-6 py-6 max-w-6xl w-full mx-auto">
-        {loading ? (
-          <div className="text-center py-12 text-zinc-500">Lade …</div>
-        ) : error ? (
-          <div className="text-center py-12 text-red-600">{error}</div>
-        ) : (
-          <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
             <div className="overflow-x-auto">
               <div className="min-w-[800px]">
                 {/* Hour header */}
@@ -325,7 +297,6 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
               </div>
             </div>
           </div>
-        )}
 
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
           <p>
@@ -363,7 +334,7 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
           onClose={() => setBookingTarget(null)}
           onCreated={() => {
             setBookingTarget(null);
-            loadReservations();
+            reloadReservations();
           }}
         />
       )}
@@ -374,7 +345,7 @@ export default function CalendarView({ currentGroup }: { currentGroup: Group }) 
           onClose={() => setConfirmCancel(null)}
           onDeleted={() => {
             setConfirmCancel(null);
-            loadReservations();
+            reloadReservations();
           }}
         />
       )}

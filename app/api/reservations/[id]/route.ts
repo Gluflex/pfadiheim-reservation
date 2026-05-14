@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { getSession } from "@/lib/auth";
-import { ensureSchema, sql, type ReservationRow } from "@/lib/db";
+import {
+  ensureSchema,
+  RESERVATIONS_CACHE_TAG,
+  sql,
+  type ReservationRow,
+} from "@/lib/db";
 import { isAdmin } from "@/lib/constants";
 
 export async function DELETE(
@@ -36,5 +42,6 @@ export async function DELETE(
       { status: 404 }
     );
   }
+  revalidateTag(RESERVATIONS_CACHE_TAG, { expire: 0 });
   return NextResponse.json({ ok: true });
 }

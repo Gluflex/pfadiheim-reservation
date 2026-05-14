@@ -1,4 +1,5 @@
 import postgres, { type Sql } from "postgres";
+import { unstable_cache } from "next/cache";
 
 declare global {
   var __pfadiSql: Sql | undefined;
@@ -106,3 +107,24 @@ export type ReservationRow = {
   note: string | null;
   created_at: string;
 };
+
+export const RESERVATIONS_CACHE_TAG = "reservations";
+
+// Cached window query — serves stale data instantly so the user never waits on
+// Neon's cold-start wake-up. Writes call revalidateTag(RESERVATIONS_CACHE_TAG)
+// to invalidate. Revalidate also runs every 60s as a safety net.
+export const getReservationsForWindow = unstable_cache(
+  async (from: string, to: string): Promise<ReservationRow[]> => {
+    await ensureSchema();
+    const rows = await sql<ReservationRow[]>`
+      SELECT id, group_name, room, to_char(date, 'YYYY-MM-DD') AS date,
+             start_hour, end_hour, note, created_at
+      FROM reservations
+      WHERE date >= ${from} AND date <= ${to}
+      ORDER BY date, room, start_hour
+    `;
+    return rows.map((r) => ({ ...r, created_at: String(r.created_at) }));
+  },
+  ["reservations-window"],
+  { revalidate: 60, tags: [RESERVATIONS_CACHE_TAG] }
+);
