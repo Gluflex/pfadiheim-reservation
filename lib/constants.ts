@@ -18,8 +18,8 @@ export const GROUPS = [
   // Stufen-Sammelkonten (ganze Stufe bucht, kein einzelnes Fähnli)
   "Biberli",
   "Wölfli",
-  "PTA",
   "Pios",
+  "PTA",
 ] as const;
 
 export type Group = (typeof GROUPS)[number];
