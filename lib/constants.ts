@@ -15,6 +15,11 @@ export const GROUPS = [
   "Widder",
   "Grizzly",
   "AF",
+  // Stufen-Sammelkonten (ganze Stufe bucht, kein einzelnes Fähnli)
+  "Biberli",
+  "Wölfli",
+  "PTA",
+  "Pios",
 ] as const;
 
 export type Group = (typeof GROUPS)[number];
@@ -25,7 +30,7 @@ export function isAdmin(group: Group): boolean {
   return ADMIN_GROUPS.includes(group);
 }
 
-export type Stufe = "wolf" | "pfadi" | "pio" | "rover" | "af";
+export type Stufe = "biber" | "wolf" | "pfadi" | "pio" | "rover" | "pta" | "af";
 
 export const STUFEN: Record<Group, Stufe> = {
   Marabu: "wolf",
@@ -40,31 +45,41 @@ export const STUFEN: Record<Group, Stufe> = {
   Widder: "rover",
   Grizzly: "rover",
   AF: "af",
+  Biberli: "biber",
+  Wölfli: "wolf",
+  PTA: "pta",
+  Pios: "pio",
 };
 
 export const STUFE_TINT: Record<Stufe, { bg: string; bgHover: string }> = {
+  biber: { bg: "bg-orange-50 dark:bg-orange-950/40", bgHover: "hover:bg-orange-100 dark:hover:bg-orange-900/40" },
   wolf:  { bg: "bg-green-50 dark:bg-green-950/40",   bgHover: "hover:bg-green-100 dark:hover:bg-green-900/40" },
   pfadi: { bg: "bg-red-50 dark:bg-red-950/40",       bgHover: "hover:bg-red-100 dark:hover:bg-red-900/40" },
   pio:   { bg: "bg-blue-50 dark:bg-blue-950/40",     bgHover: "hover:bg-blue-100 dark:hover:bg-blue-900/40" },
   rover: { bg: "bg-violet-50 dark:bg-violet-950/40", bgHover: "hover:bg-violet-100 dark:hover:bg-violet-900/40" },
+  pta:   { bg: "bg-teal-50 dark:bg-teal-950/40",     bgHover: "hover:bg-teal-100 dark:hover:bg-teal-900/40" },
   af:    { bg: "bg-yellow-50 dark:bg-yellow-950/40", bgHover: "hover:bg-yellow-100 dark:hover:bg-yellow-900/40" },
 };
 
 /** Saturated Stufe colors used as the primary booking-block fill on the calendar. */
 export const STUFE_BLOCK: Record<Stufe, { bg: string; text: string }> = {
+  biber: { bg: "bg-orange-500", text: "text-white" },
   wolf:  { bg: "bg-green-600",  text: "text-white" },
   pfadi: { bg: "bg-red-600",    text: "text-white" },
   pio:   { bg: "bg-blue-600",   text: "text-white" },
   rover: { bg: "bg-violet-600", text: "text-white" },
+  pta:   { bg: "bg-teal-600",   text: "text-white" },
   af:    { bg: "bg-yellow-400", text: "text-black" },
 };
 
 /** Ring color used to mark the active (selected) Fähnli on the login screen. */
 export const STUFE_RING: Record<Stufe, string> = {
+  biber: "ring-orange-600",
   wolf:  "ring-green-700",
   pfadi: "ring-red-700",
   pio:   "ring-blue-700",
   rover: "ring-violet-700",
+  pta:   "ring-teal-700",
   af:    "ring-yellow-500",
 };
 
@@ -82,6 +97,10 @@ export const GROUP_MOTTOS: Record<Group, string> = {
   Widder: "",
   Grizzly: "G-R-I-DOUBLE-Z-L-Y, that's Grizzly",
   AF: "",
+  Biberli: "",
+  Wölfli: "",
+  PTA: "",
+  Pios: "",
 };
 
 export const ROOMS = [
@@ -111,6 +130,10 @@ export const GROUP_COLORS: Record<Group, { bg: string; text: string; ring: strin
   Flädermuus: { bg: "bg-violet-500",  text: "text-white", ring: "ring-violet-400" },
   Marabu:     { bg: "bg-slate-600",   text: "text-white", ring: "ring-slate-400" },
   AF:         { bg: "bg-indigo-700",  text: "text-white", ring: "ring-indigo-400" },
+  Biberli:    { bg: "bg-orange-500",  text: "text-white", ring: "ring-orange-400" },
+  Wölfli:     { bg: "bg-green-600",   text: "text-white", ring: "ring-green-400" },
+  PTA:        { bg: "bg-teal-500",    text: "text-white", ring: "ring-teal-400" },
+  Pios:       { bg: "bg-blue-600",    text: "text-white", ring: "ring-blue-400" },
 };
 
 export function isGroup(x: unknown): x is Group {
