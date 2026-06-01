@@ -13,6 +13,80 @@ import {
   type Room,
 } from "@/lib/constants";
 
+// PTA bekommt einen verspielten Konfetti-Ballon-Hintergrund statt der flachen Tönung.
+const PTA_CONFETTI_SVG =
+  "<svg xmlns='http://www.w3.org/2000/svg' width='42' height='42' viewBox='0 0 42 42'>" +
+  "<g opacity='0.5' fill='#14b8a6'>" +
+  "<ellipse cx='11' cy='11' rx='3.6' ry='4.6'/><path d='M11,15.5 q.9,2.2 0,4.4' stroke='#14b8a6' stroke-width='0.6' fill='none'/>" +
+  "<ellipse cx='31' cy='28' rx='3.6' ry='4.6'/><path d='M31,32.5 q.9,2.2 0,4.4' stroke='#14b8a6' stroke-width='0.6' fill='none'/>" +
+  "<circle cx='31' cy='9' r='1.5'/><circle cx='9' cy='31' r='1.5'/><circle cx='21' cy='20' r='1.2'/>" +
+  "</g></svg>";
+const PTA_CONFETTI_BG = `url("data:image/svg+xml,${encodeURIComponent(PTA_CONFETTI_SVG)}")`;
+
+const BALLOON_COLORS: ReadonlyArray<readonly [string, string]> = [
+  ["#fecaca", "#ef4444"], ["#fde68a", "#f59e0b"], ["#bbf7d0", "#22c55e"],
+  ["#bfdbfe", "#3b82f6"], ["#fbcfe8", "#ec4899"], ["#ddd6fe", "#8b5cf6"],
+  ["#99f6e4", "#14b8a6"],
+];
+
+/** Schiesst beim Antippen einen kleinen Schwung Ballons über dem Button nach oben. */
+function launchBalloons(e: React.MouseEvent<HTMLElement>) {
+  if (typeof window === "undefined") return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+  const rect = e.currentTarget.getBoundingClientRect();
+  const ox = rect.left + rect.width / 2;
+  const oy = rect.top + rect.height * 0.35;
+
+  let layer = document.getElementById("balloon-fx");
+  if (!layer) {
+    layer = document.createElement("div");
+    layer.id = "balloon-fx";
+    layer.style.cssText =
+      "position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden";
+    document.body.appendChild(layer);
+  }
+
+  const count = 4 + Math.floor(Math.random() * 3); // 4–6, dezent
+  for (let i = 0; i < count; i++) {
+    const [light, dark] = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+    const wrap = document.createElement("div");
+    wrap.style.cssText =
+      `position:fixed;left:${ox + (Math.random() * 2 - 1) * 12}px;top:${oy}px;will-change:transform,opacity`;
+
+    const body = document.createElement("div");
+    body.style.cssText =
+      "width:14px;height:18px;border-radius:50% 50% 47% 47%;" +
+      "box-shadow:inset -1.5px -2px 4px rgba(0,0,0,.16);" +
+      `background:radial-gradient(circle at 33% 27%, rgba(255,255,255,.85), ${light} 42%, ${dark} 100%);` +
+      `transform:scale(${(0.6 + Math.random() * 0.4).toFixed(2)})`;
+
+    const str = document.createElement("div");
+    str.style.cssText =
+      "position:absolute;left:50%;top:100%;width:1px;height:10px;background:rgba(160,160,160,.5);transform:translateX(-50%)";
+    body.appendChild(str);
+    wrap.appendChild(body);
+    layer.appendChild(wrap);
+
+    const dx = (Math.random() * 2 - 1) * 70;
+    const dy = -(140 + Math.random() * 130);
+    const rot = (Math.random() * 2 - 1) * 32;
+    const dur = 950 + Math.random() * 500;
+    const swayX = dx * (0.35 + Math.random() * 0.3);
+
+    const anim = wrap.animate(
+      [
+        { transform: "translate(-50%,-50%)", opacity: 0 },
+        { offset: 0.15, opacity: 0.9, transform: `translate(-50%,-50%) translate(${swayX}px, ${dy * 0.14}px) rotate(${rot * 0.25}deg)` },
+        { offset: 0.6, transform: `translate(-50%,-50%) translate(${dx * 1.1}px, ${dy * 0.62}px) rotate(${rot * 0.7}deg)` },
+        { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) rotate(${rot}deg)`, opacity: 0 },
+      ],
+      { duration: dur, easing: "cubic-bezier(.22,.61,.36,1)", fill: "forwards" }
+    );
+    anim.onfinish = () => wrap.remove();
+  }
+}
+
 type Reservation = {
   id: number;
   group_name: Group;
@@ -155,7 +229,11 @@ function LoginInner() {
                       <button
                         type="button"
                         key={g}
-                        onClick={() => pickGroup(g)}
+                        onClick={(e) => {
+                          pickGroup(g);
+                          if (STUFEN[g] === "pta") launchBalloons(e);
+                        }}
+                        style={STUFEN[g] === "pta" ? { backgroundImage: PTA_CONFETTI_BG } : undefined}
                         className={`text-xs px-2 py-2 rounded-lg
                           ${tint.bg} ${tint.bgHover}
                           transition-[box-shadow,color,font-weight] duration-200 ease-out
